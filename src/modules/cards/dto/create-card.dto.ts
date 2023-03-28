@@ -1,5 +1,5 @@
 export class CreateCardDto {
-  id_user: number;
+  userId: number;
   bank: string;
   valid: boolean;
 }

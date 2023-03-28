@@ -17,7 +17,7 @@ export class UsersService {
       where: { nickname },
     });
     if (loginChek) {
-      throw new BadRequestException('Имя занято');
+      throw new BadRequestException('Имя занaто');
     }
 
     return this.prisma.user.create({
@@ -67,5 +67,6 @@ export class UsersService {
     if (!user) {
       throw new NotFoundException('Шошошо?');
     }
+    return user;
   }
 }
