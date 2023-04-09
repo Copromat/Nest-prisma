@@ -1,11 +1,18 @@
-export class UpdateUserDto {
-  firs_name?: string;
-  middle_name?: string;
-  last_name?: string;
-  email?: string;
-  nickname?: string;
+import { ApiPropertyOptional, OmitType } from '@nestjs/swagger';
+import { IsOptional, IsString } from 'class-validator';
+import { CreateUserDto } from './create-user.dto';
+
+export class UpdateUserDto extends OmitType(CreateUserDto, [
+  'nickname',
+  'password',
+]) {
+  @ApiPropertyOptional({ description: 'User Password' })
+  @IsString()
+  @IsOptional()
   password?: string;
-  work?: string | null;
-  skills?: string | null;
-  avatar?: string | null;
+
+  @ApiPropertyOptional({ description: 'User Password' })
+  @IsString()
+  @IsOptional()
+  new_password?: string;
 }

@@ -11,15 +11,17 @@ import { UpdateCardDto } from './dto/update-card.dto';
 export class CardsService {
   constructor(private readonly prisma: PrismaService) {}
   async create(data: CreateCardDto) {
+    const card = await this.prisma.credit_card.create({
+      data: {
+        ...data,
+      },
+    });
     const user = await this.prisma.user.findUnique({
       where: { id: data.userId },
     });
     if (!user) {
       throw new NotFoundException('Noonono');
     }
-    const card = await this.prisma.credit_card.create({
-      data: { bank: data.bank, valid: data.valid, userId: data.userId },
-    });
 
     return card;
   }
