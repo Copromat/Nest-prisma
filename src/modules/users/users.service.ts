@@ -8,11 +8,14 @@ import {
 import { UpdateUserDto } from './dto/update-user.dto';
 import * as argon2 from 'argon2';
 
-import { buffer } from 'stream/consumers';
+import { JwtService } from '@nestjs/jwt';
 
 @Injectable()
 export class UsersService {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(
+    private readonly prisma: PrismaService,
+    private jwtService: JwtService,
+  ) {}
 
   async login(data: LoginUser) {
     const { nickname, password } = data;
@@ -25,7 +28,7 @@ export class UsersService {
       },
     });
     if (!user) {
-      throw new BadRequestException('Неверноее имя пользователя или пароль ');
+      throw new BadRequestException('Неверноее имяz пользователя или пароль ');
     }
     const salt = Buffer.from(process.env.SALT);
     const valide = await argon2.verify(
@@ -37,7 +40,23 @@ export class UsersService {
       // проверка+url+ретерн
       throw new BadRequestException('Неверmноjе имя пользователя или пароль ');
     }
-    return true;
+    const payload = { username: nickname, user: user.id };
+    const access_token = this.jwtService.sign(payload, {
+      expiresIn: '15m',
+      secret: Buffer.from(process.env.SALTJWT),
+    });
+    const refresh_token = this.jwtService.sign(payload, {
+      expiresIn: '1d',
+      secret: Buffer.from(process.env.SALTJWT),
+    });
+
+    await this.prisma.security_guard.update({
+      where: { userId: user.id },
+      data: { refresh_token },
+    }); //посмотреть варианты с userId
+    return {
+      access_token,
+    };
   }
 
   async singUp(data: CreateUserDto) {
@@ -119,11 +138,11 @@ export class UsersService {
     const user = await this.prisma.user.findUnique({
       where: { id },
       include: {
-        creditcard: true, // All posts мы обращаемся к орм????????????
+        creditcard: true,
       },
     });
     if (!user) throw new NotFoundException('Такой пользователь не найден');
-    return user; // рои выводе данных пользователя должны отображаться карточки // транзакции(полная передача информации)/ каждую связь указываем отдельно????
+    return user;
   }
 
   async remove(id: number) {
